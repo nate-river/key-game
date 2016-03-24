@@ -10,13 +10,11 @@
   .block{
     position: absolute;
     display: inline-block;
-    border-radius: 50%;
-    width:50px;
-    height:50px;
-    line-height: 50px;
+    padding: 13px;
     color:white;
+    border-radius:5px;
     text-align: center;
-    background: black;
+    background: rgba(255,255,255,0.3);
   }
   #sence{
     width: 600px;
@@ -29,6 +27,14 @@
   <div id="sence"></div>
 </body>
 <script>
++function(){
+
+  var _database = 'a b c d e f g h i j k l m n The Karl Jansky Very Large Array is a radio astronomy observatory located on the Plains of San Agustin between the towns of Magdalena and Datil';
+
+  var database = _database.split(/\s+/).map(function(v){
+    return v.toLowerCase();
+  });
+
   var
 
   //一开始出几个字
@@ -44,19 +50,20 @@
   var createBlock = function  (zimu) {
     var el = document.createElement('div');
     el.className = 'block';
-    el.innerHTML = zimu;
+    el.innerHTML = Array.prototype.map.call( zimu,function(v,i){
+      return  '<span>'+ v +'</span>';
+    }).join('');
     el.style.left = Math.floor(Math.random()*sence_width)  + 'px';
     sence.appendChild(el)
-    zi[zimu] = { el:el, top:0, off:Math.ceil( Math.random()*6 ) };
+    zi[zimu] = { el:el, top:0, off:Math.ceil( Math.random()*4 ) };
   }
 
   // 在数据中追加一个随机字 并画出
   var addOne = function () {
-      do{
-        var xinzi = Math.floor( (Math.random() * 26) + 97 );
-        var newkey = String.fromCharCode(xinzi);
-      } while( zi[ newkey ] );
-      createBlock(newkey);
+    do{
+      var key = database [ Math.floor(Math.random()*database.length) ];
+    } while( zi[ key ] );
+    createBlock( key );
   }
 
   // 从数据和页面删除一个字
@@ -68,11 +75,9 @@
   // 初始化
   sence.style.width = sence_width + 'px';
   for(var i = 0; i < init_num; i++){
-    var key = String.fromCharCode( Math.floor( Math.random()*26 + 97 ) );
-    if( !zi[key] ){
-      createBlock(key);
-    }
+    addOne();
   }
+
 
   // 动画下落
   var move = function   () {
@@ -83,13 +88,16 @@
       _d.top += _d.off;
       _d.el.style.top = _d.top  + 'px';
       if(_d.top > window.innerHeight){
-        fordelete.push(zimu);
+        fordelete.push( {key:zimu,el:_d.el});
       }
     }
     if ( fordelete.length ){
-      fordelete.forEach(function (zimu) {
-        deleteOne(zimu)
+      fordelete.forEach(function (d) {
+        deleteOne(d.key)
         addOne();
+        if( d.el.contains(current) ){
+          current  = null;
+        }
       });
     }
   }
@@ -107,17 +115,49 @@
   // 开启动画
   var timerId  = setInterval(move,30);
 
+
+  var current;
+
   //注册事件
   document.addEventListener('keydown',function (e) {
     e.preventDefault();
     var zimu = String.fromCharCode( e.keyCode + 32 );
-    if( zi[ zimu ] ){
-      deleteOne(zimu);
-      addOne();
-    }else if( e.keyCode == 32){
+
+    if( e.keyCode == 32){
       toggleGame();
+      return;
     }
+
+    if( !current ){
+      var els = document.querySelectorAll('.block');
+      var els = Array.prototype.filter.call(els,function(v){
+        return  v.firstElementChild.innerHTML === zimu;
+      })
+      current = els[0].firstElementChild;
+      current.style.color = 'red';
+      //这个单词是单字母的情况
+      if ( ! current.nextElementSibling ){
+        deleteOne(zimu);
+        addOne();
+        current = null;
+      }
+    }else{
+      if ( current.nextElementSibling.innerHTML === zimu ){
+        current = current.nextElementSibling;
+        current.style.color = 'red';
+        if( ! current.nextElementSibling ){
+          var key =  Array.prototype.map.call( current.parentElement.children, function(v){
+            return v.innerHTML;
+          }).join('');
+          deleteOne(key);
+          addOne();
+          current = null;
+        }
+      }
+    }
+
   },false);
+}();
 
 </script>
 </html>
