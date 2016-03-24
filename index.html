@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Font Game</title>
+  <style>
+  body{
+    background: rgb(69, 137, 226);
+  }
+  .block{
+    position: absolute;
+    display: inline-block;
+    border-radius: 50%;
+    width:50px;
+    height:50px;
+    line-height: 50px;
+    color:white;
+    text-align: center;
+    background: black;
+  }
+  #sence{
+    width: 600px;
+    margin: 0 auto;
+    position: relative;
+  }
+  </style>
+</head>
+<body>
+  <div id="sence"></div>
+</body>
+<script>
+  var
+
+  //一开始出几个字
+  init_num = 5,
+  //场景宽度
+  sence_width = 800,
+  //场景dom
+  sence = document.querySelector('#sence'),
+  //核心数据
+  zi = {};
+
+  // 在页面中追加一个字div
+  var createBlock = function  (zimu) {
+    var el = document.createElement('div');
+    el.className = 'block';
+    el.innerHTML = zimu;
+    el.style.left = Math.floor(Math.random()*sence_width)  + 'px';
+    sence.appendChild(el)
+    zi[zimu] = { el:el, top:0, off:Math.ceil( Math.random()*6 ) };
+  }
+
+  // 在数据中追加一个随机字 并画出
+  var addOne = function () {
+      do{
+        var xinzi = Math.floor( (Math.random() * 26) + 97 );
+        var newkey = String.fromCharCode(xinzi);
+      } while( zi[ newkey ] );
+      createBlock(newkey);
+  }
+
+  // 从数据和页面删除一个字
+  var deleteOne = function ( zimu ) {
+    sence.removeChild(zi[zimu].el);
+    delete zi[zimu];
+  }
+
+  // 初始化
+  sence.style.width = sence_width + 'px';
+  for(var i = 0; i < init_num; i++){
+    var key = String.fromCharCode( Math.floor( Math.random()*26 + 97 ) );
+    if( !zi[key] ){
+      createBlock(key);
+    }
+  }
+
+  // 动画下落
+  var move = function   () {
+    //清理落底元素
+    var fordelete = [];
+    for( var zimu in zi ){
+      var _d = zi[zimu];
+      _d.top += _d.off;
+      _d.el.style.top = _d.top  + 'px';
+      if(_d.top > window.innerHeight){
+        fordelete.push(zimu);
+      }
+    }
+    if ( fordelete.length ){
+      fordelete.forEach(function (zimu) {
+        deleteOne(zimu)
+        addOne();
+      });
+    }
+  }
+
+  // 启动暂停游戏
+  var toggleGame = function   () {
+    if ( timerId ){
+      clearInterval(timerId);
+      timerId = null;
+    }else{
+      timerId = setInterval(move,30);
+    }
+  }
+
+  // 开启动画
+  var timerId  = setInterval(move,30);
+
+  //注册事件
+  document.addEventListener('keydown',function (e) {
+    e.preventDefault();
+    var zimu = String.fromCharCode( e.keyCode + 32 );
+    if( zi[ zimu ] ){
+      deleteOne(zimu);
+      addOne();
+    }else if( e.keyCode == 32){
+      toggleGame();
+    }
+  },false);
+
+</script>
+</html>
