@@ -54,7 +54,7 @@
   letters = {},
 
   // 当前打字命中的单词所对应的 span dom对象
-  current,
+  currentLetter,
 
   // 时间编号
   timerId;
@@ -101,8 +101,8 @@
       fordelete.forEach(function (d) {
         deleteOne(d.key);
         addOne();
-        if( d.el.contains(current) ){
-          current  = null;
+        if( d.el.contains(currentLetter) ){
+          currentLetter  = null;
         }
       });
     }
@@ -138,30 +138,30 @@
       return;
     }
 
-    if( !current ){
+    if( !currentLetter ){
       var els = document.querySelectorAll('.block');
       els = Array.prototype.filter.call(els,function(v){
         return  v.firstElementChild.innerHTML === letter;
       });
-      current = els[0].firstElementChild;
-      current.style.color = 'red';
+      currentLetter = els[0].firstElementChild;
+      currentLetter.style.color = 'red';
       //这个单词是单字母的情况
-      if ( ! current.nextElementSibling ){
+      if ( ! currentLetter.nextElementSibling ){
         deleteOne(letter);
         addOne();
-        current = null;
+        currentLetter = null;
       }
     }else{
-      if ( current.nextElementSibling.innerHTML === letter ){
-        current = current.nextElementSibling;
-        current.style.color = 'red';
-        if( ! current.nextElementSibling ){
-          var key =  Array.prototype.map.call( current.parentElement.children, function(v){
+      if ( currentLetter.nextElementSibling.innerHTML === letter ){
+        currentLetter = currentLetter.nextElementSibling;
+        currentLetter.style.color = 'red';
+        if( ! currentLetter.nextElementSibling ){
+          var key =  Array.prototype.map.call( currentLetter.parentElement.children, function(v){
             return v.innerHTML;
           }).join('');
           deleteOne(key);
           addOne();
-          current = null;
+          currentLetter = null;
         }
       }
     }
