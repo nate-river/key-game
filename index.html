@@ -28,78 +28,85 @@
 </body>
 <script>
 +function(){
-  var _database = "What's Yeoman? Yeoman helps you to kickstart new projects, prescribing best practices and tools to help you stay productive. To do so, we provide a generator ecosystem. A generator is basically a plugin that can be run with the `yo` command to scaffold complete projects or useful parts. Through our official Generators, we promote the Yeoman workflow. This workflow is a robust and opinionated client-side stack, comprising tools and frameworks that can help developers quickly build beautiful web applications. We take care of providing everything needed to get started without any of the normal headaches associated with a manual setup. With a modular architecture that can scale out of the box, we leverage the success and lessons learned from several open-source communities to ensure the stack developers use is as intelligent as possible. As firm believers in good documentation and well thought out build processes, Yeoman includes support for linting, testing, minification and much more, so developers can focus on solutions rather than worrying about the little things. var _database = 'n The, Karl. Jansky- Very: Large Array is a radio astronomy observatory located on the Plains of San Agustin between the towns of Magdalena and Datil';";
 
-  var database = _database.replace(/,|\.|"|'|:|-|`|;|_|\?/g,'').split(/\s+/).map(function(v){
-    return v.toLowerCase();
-  });
 
   var
 
-  //一开始出几个字
-  init_num = 5,
-  //场景宽度
-  sence_width = 800,
-  //场景dom
+  // 一个长字符串 作为打字素材
+  _database = "What's Yeoman? Yeoman helps you to kickstart new projects, prescribing best practices and tools to help you stay productive. To do so, we provide a generator ecosystem. A generator is basically a plugin that can be run with the `yo` command to scaffold complete projects or useful parts. Through our official Generators, we promote the Yeoman workflow. This workflow is a robust and opinionated client-side stack, comprising tools and frameworks that can help developers quickly build beautiful web applications. We take care of providing everything needed to get started without any of the normal headaches associated with a manual setup. With a modular architecture that can scale out of the box, we leverage the success and lessons learned from several open-source communities to ensure the stack developers use is as intelligent as possible. As firm believers in good documentation and well thought out build processes, Yeoman includes support for linting, testing, minification and much more, so developers can focus on solutions rather than worrying about the little things. var _database  'n The, Karl. Jansky- Very: Large Array is a radio astronomy observatory located on the Plains of San Agustin between the towns of Magdalena and Datil';",
+
+
+  // 将字符串转化为数组,方便随机取字母
+  database = _database.replace(/,|\.|"|'|:|-|`|;|_|\?/g,'').split(/\s+/).map(function(v){
+    return v.toLowerCase();
+  }),
+
+  // 一开始出几个字
+  initNum = 5,
+
+  // 场景宽度
+  senceWidth = 800,
+
+  // 场景dom元素
   sence = document.querySelector('#sence'),
-  //核心数据
-  zi = {};
+
+  // 核心数据结构  以单词为键  一个对象{el:x,top:x,off:r} 为值
+  letters = {},
+
+  // 当前打字命中的单词所对应的 span dom对象
+  current,
+
+  // 时间编号
+  timerId;
 
   // 在页面中追加一个字div
-  var createBlock = function  (zimu) {
+  var createBlock = function  (letter) {
     var el = document.createElement('div');
     el.className = 'block';
-    el.innerHTML = Array.prototype.map.call( zimu,function(v,i){
+    el.innerHTML = Array.prototype.map.call( letter,function(v, i){
       return  '<span>'+ v +'</span>';
     }).join('');
-    el.style.left = Math.floor(Math.random()*sence_width)  + 'px';
-    sence.appendChild(el)
-    zi[zimu] = { el:el, top:0, off:Math.ceil( Math.random()*4 ) };
-  }
+    el.style.left = Math.floor(Math.random()*senceWidth)  + 'px';
+    sence.appendChild(el);
+    letters[letter] = { el:el, top:0, off:Math.ceil( Math.random()*4 ) };
+  };
 
   // 在数据中追加一个随机字 并画出
   var addOne = function () {
     do{
       var key = database [ Math.floor(Math.random()*database.length) ];
-    } while( zi[ key ] );
+    } while( letters[ key ] );
     createBlock( key );
-  }
+  };
 
   // 从数据和页面删除一个字
-  var deleteOne = function ( zimu ) {
-    sence.removeChild(zi[zimu].el);
-    delete zi[zimu];
-  }
-
-  // 初始化
-  sence.style.width = sence_width + 'px';
-  for(var i = 0; i < init_num; i++){
-    addOne();
-  }
-
+  var deleteOne = function (letter ) {
+    sence.removeChild(letters[letter].el);
+    delete letters[letter];
+  };
 
   // 动画下落
   var move = function   () {
     //清理落底元素
     var fordelete = [];
-    for( var zimu in zi ){
-      var _d = zi[zimu];
+    for( var letter in letters ){
+      var _d = letters[letter];
       _d.top += _d.off;
       _d.el.style.top = _d.top  + 'px';
       if(_d.top > window.innerHeight){
-        fordelete.push( {key:zimu,el:_d.el});
+        fordelete.push( {key:letter,el:_d.el});
       }
     }
     if ( fordelete.length ){
       fordelete.forEach(function (d) {
-        deleteOne(d.key)
+        deleteOne(d.key);
         addOne();
         if( d.el.contains(current) ){
           current  = null;
         }
       });
     }
-  }
+  };
 
   // 启动暂停游戏
   var toggleGame = function   () {
@@ -109,39 +116,43 @@
     }else{
       timerId = setInterval(move,30);
     }
-  }
+  };
 
-  // 开启动画
-  var timerId  = setInterval(move,30);
+  var startGame = function () {
+    sence.style.width = senceWidth + 'px';
+    for(var i = 0; i < initNum; i++){
+      addOne();
+    }
+    timerId  = setInterval(move,30);
+  };
 
-
-  var current;
-
-  //注册事件
-  document.addEventListener('keydown',function (e) {
-    e.preventDefault();
-    var zimu = String.fromCharCode( e.keyCode + 32 );
+  var keydownHandler = function (e) {
+    var letter = String.fromCharCode( e.keyCode + 32 );
 
     if( e.keyCode == 32){
       toggleGame();
       return;
     }
 
+    if( !timerId ) {
+      return;
+    }
+
     if( !current ){
       var els = document.querySelectorAll('.block');
-      var els = Array.prototype.filter.call(els,function(v){
-        return  v.firstElementChild.innerHTML === zimu;
-      })
+      els = Array.prototype.filter.call(els,function(v){
+        return  v.firstElementChild.innerHTML === letter;
+      });
       current = els[0].firstElementChild;
       current.style.color = 'red';
       //这个单词是单字母的情况
       if ( ! current.nextElementSibling ){
-        deleteOne(zimu);
+        deleteOne(letter);
         addOne();
         current = null;
       }
     }else{
-      if ( current.nextElementSibling.innerHTML === zimu ){
+      if ( current.nextElementSibling.innerHTML === letter ){
         current = current.nextElementSibling;
         current.style.color = 'red';
         if( ! current.nextElementSibling ){
@@ -154,8 +165,15 @@
         }
       }
     }
+    e.preventDefault();
+  };
 
-  },false);
+  //注册事件
+  document.addEventListener('keydown', keydownHandler, false);
+
+  startGame();
+
+
 }();
 
 </script>
